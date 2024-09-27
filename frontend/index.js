@@ -1,12 +1,28 @@
 import { backend } from 'declarations/backend';
 
-const API_KEY = 'your_actual_api_key_here'; // Replace with your actual OpenWeatherMap API key
 const weatherInfoDiv = document.getElementById('weatherInfo');
 const recentQueriesDiv = document.getElementById('recentQueries');
 const zipCodeInput = document.getElementById('zipCode');
 const getWeatherButton = document.getElementById('getWeather');
 
 getWeatherButton.addEventListener('click', getWeather);
+
+function generateMockWeather(zipCode) {
+    const temp = Math.floor(Math.random() * 50) + 30; // Random temperature between 30 and 80
+    const feelsLike = temp + Math.floor(Math.random() * 10) - 5; // Feels like temperature within 5 degrees of actual
+    const humidity = Math.floor(Math.random() * 60) + 20; // Random humidity between 20 and 80
+    const conditions = ['Sunny', 'Cloudy', 'Partly Cloudy', 'Rainy', 'Windy'][Math.floor(Math.random() * 5)];
+    
+    return {
+        name: `City (${zipCode})`,
+        main: {
+            temp,
+            feels_like: feelsLike,
+            humidity
+        },
+        weather: [{ description: conditions }]
+    };
+}
 
 async function getWeather() {
     const zipCode = zipCodeInput.value.trim();
@@ -30,30 +46,18 @@ async function getWeather() {
             return;
         }
 
-        console.log('Fetching weather data...');
-        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?zip=${zipCode},us&appid=${API_KEY}&units=imperial`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        console.log('Generating mock weather data...');
+        const data = generateMockWeather(zipCode);
+        console.log('Weather data generated:', data);
 
-        const data = await response.json();
-        console.log('Weather data received:', data);
-
-        if (data.cod === '404') {
-            weatherInfoDiv.innerHTML = '<p>City not found. Please check the ZIP code.</p>';
-        } else if (data && data.main && data.weather) {
-            const weatherHtml = `
-                <h2>${data.name}</h2>
-                <p>Temperature: ${data.main.temp}°F</p>
-                <p>Feels like: ${data.main.feels_like}°F</p>
-                <p>Weather: ${data.weather[0].description}</p>
-                <p>Humidity: ${data.main.humidity}%</p>
-            `;
-            weatherInfoDiv.innerHTML = weatherHtml;
-        } else {
-            throw new Error('Invalid API response');
-        }
+        const weatherHtml = `
+            <h2>${data.name}</h2>
+            <p>Temperature: ${data.main.temp}°F</p>
+            <p>Feels like: ${data.main.feels_like}°F</p>
+            <p>Weather: ${data.weather[0].description}</p>
+            <p>Humidity: ${data.main.humidity}%</p>
+        `;
+        weatherInfoDiv.innerHTML = weatherHtml;
 
         updateRecentQueries();
     } catch (error) {

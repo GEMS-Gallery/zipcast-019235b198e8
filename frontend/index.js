@@ -1,6 +1,6 @@
 import { backend } from 'declarations/backend';
 
-const API_KEY = 'YOUR_OPENWEATHERMAP_API_KEY';
+const API_KEY = 'your_actual_api_key_here'; // Replace with your actual OpenWeatherMap API key
 const weatherInfoDiv = document.getElementById('weatherInfo');
 const recentQueriesDiv = document.getElementById('recentQueries');
 const zipCodeInput = document.getElementById('zipCode');
@@ -27,7 +27,7 @@ async function getWeather() {
 
         if (data.cod === '404') {
             weatherInfoDiv.innerHTML = '<p>City not found. Please check the ZIP code.</p>';
-        } else {
+        } else if (data && data.main && data.weather) {
             const weatherHtml = `
                 <h2>${data.name}</h2>
                 <p>Temperature: ${data.main.temp}°F</p>
@@ -36,6 +36,8 @@ async function getWeather() {
                 <p>Humidity: ${data.main.humidity}%</p>
             `;
             weatherInfoDiv.innerHTML = weatherHtml;
+        } else {
+            throw new Error('Invalid API response');
         }
 
         updateRecentQueries();

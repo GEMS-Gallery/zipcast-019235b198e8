@@ -1,0 +1,4 @@
+service : {
+  addQuery: (text) -> (bool);
+  getRecentQueries: () -> (vec text) query;
+}

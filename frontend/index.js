@@ -15,15 +15,30 @@ async function getWeather() {
         return;
     }
 
+    if (!weatherInfoDiv) {
+        console.error('Weather info div not found');
+        return;
+    }
+
+    weatherInfoDiv.innerHTML = '<p>Loading weather data...</p>';
+
     try {
+        console.log('Checking rate limit...');
         const canProceed = await backend.addQuery(zipCode);
         if (!canProceed) {
-            alert('Rate limit exceeded. Please try again later.');
+            weatherInfoDiv.innerHTML = '<p>Rate limit exceeded. Please try again later.</p>';
             return;
         }
 
+        console.log('Fetching weather data...');
         const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?zip=${zipCode},us&appid=${API_KEY}&units=imperial`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
+        console.log('Weather data received:', data);
 
         if (data.cod === '404') {
             weatherInfoDiv.innerHTML = '<p>City not found. Please check the ZIP code.</p>';
@@ -43,13 +58,20 @@ async function getWeather() {
         updateRecentQueries();
     } catch (error) {
         console.error('Error:', error);
-        weatherInfoDiv.innerHTML = '<p>An error occurred. Please try again later.</p>';
+        weatherInfoDiv.innerHTML = `<p>An error occurred: ${error.message}. Please try again later.</p>`;
     }
 }
 
 async function updateRecentQueries() {
+    if (!recentQueriesDiv) {
+        console.error('Recent queries div not found');
+        return;
+    }
+
     try {
+        console.log('Fetching recent queries...');
         const queries = await backend.getRecentQueries();
+        console.log('Recent queries:', queries);
         const queriesHtml = queries.map(query => `<li>${query}</li>`).join('');
         recentQueriesDiv.innerHTML = `
             <h3>Recent Queries</h3>
@@ -57,8 +79,11 @@ async function updateRecentQueries() {
         `;
     } catch (error) {
         console.error('Error fetching recent queries:', error);
+        recentQueriesDiv.innerHTML = '<p>Unable to fetch recent queries.</p>';
     }
 }
 
 // Initial load of recent queries
 updateRecentQueries();
+
+console.log('Weather app initialized');
